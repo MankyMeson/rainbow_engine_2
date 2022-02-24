@@ -60,7 +60,7 @@ impl Vector2 {
             Vector2 { x: x, y: y }
         } else {
 
-            let mut xout = if sepx == 0. {
+            let xout = if sepx == 0. {
                 self.x
             } else if sepx < 0. {
                 self.x + (amount / ((sepy/sepx).powf(2.) + 1.).sqrt())
@@ -68,7 +68,7 @@ impl Vector2 {
                 self.x - (amount / ((sepy/sepx).powf(2.) + 1.).sqrt())
             };
 
-            let mut yout = if sepy == 0. {
+            let yout = if sepy == 0. {
                 self.y
             } else if sepy < 0. {
                 self.y + (amount*amount - (self.x - xout).powf(2.)).sqrt()
@@ -78,6 +78,11 @@ impl Vector2 {
 
             Vector2 { x: xout, y: yout }
         }
+    }
+
+
+    pub fn move_towards_vec(&self, v: Vector2, amount: f64) -> Vector2 {
+        self.move_towards(v.x, v.y, amount)
     }
 
 }

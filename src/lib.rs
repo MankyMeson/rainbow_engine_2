@@ -5,9 +5,12 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 pub mod consts;
-pub mod vector_2;
+pub mod vector;
+pub mod entity;
+pub mod input;
 
-use vector_2::Vector2;
+use crate::entity::*;
+use vector::Vector2;
 
 pub fn render(
     canvas: &mut WindowCanvas,
@@ -33,8 +36,38 @@ pub fn render(
 pub struct Player {
     pub position: Point,
     pub sprite: Rect,
-    pub speed: vector_2::Vector2,
-    pub direction: vector_2::Vector2
+    pub speed: vector::Vector2,
+    pub direction: vector::Vector2
+}
+
+#[derive(Debug)]
+pub struct Player_new {
+    pub position: Point,
+    pub sprite: Entity<Sprite>,
+    pub kinematics: Entity<Kinetic>,
+    pub collider: Entity<Collision>
+}
+
+pub fn update_player_new(player: &mut Player_new) {
+    // Movement Update
+    player.kinematics.kind.speed = if player.kinematics.kind.direction.magnitude() == 0. {
+        player.kinematics.kind.speed.move_towards(0.,0.,consts::PLAYER_FRICTION as f64)
+    } else {
+        let max_spd_vec = player.kinematics.kind.direction
+            .normalise()
+            .scalar_mult(consts::PLAYER_SPEED as f64);
+        player.kinematics.kind.speed
+            .move_towards_vec(max_spd_vec, consts::PLAYER_ACCN as f64)
+    };
+
+    let dx = player.kinematics.kind.speed.x.round() as i32;
+    let dy = player.kinematics.kind.speed.y.round() as i32;
+
+    player.position             = player.position.offset(dx, dy);
+    player.sprite.position      = player.sprite.position.offset(dx, dy);
+    player.kinematics.position  = player.kinematics.position.offset(dx, dy);
+    player.collider.position    = player.collider.position.offset(dx, dy);
+
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -69,32 +102,7 @@ pub fn update_player(player: &mut Player) {
         );
 }
 
-pub fn get_move_inpt(player: &mut Player, event: Event) {
-    match event {
-        Event::KeyDown { keycode: Some(Keycode::Left), repeat: false, .. } => {
-            player.direction = player.direction.offset(-1.0,0.0);
-        },
-        Event::KeyDown { keycode: Some(Keycode::Right), repeat: false, .. } => {
-            player.direction = player.direction.offset(1.0,0.0);
-        },
-        Event::KeyDown { keycode: Some(Keycode::Up), repeat: false, .. } => {
-            player.direction = player.direction.offset(0.0,-1.0);
-        },
-        Event::KeyDown { keycode: Some(Keycode::Down), repeat: false, .. } => {
-            player.direction = player.direction.offset(0.0,1.0);
-        },
-        Event::KeyUp { keycode: Some(Keycode::Left), repeat: false, .. } => {
-            player.direction = player.direction.offset(1.0,0.0);
-        },
-        Event::KeyUp { keycode: Some(Keycode::Right), repeat: false, .. } => {
-            player.direction = player.direction.offset(-1.0,0.0);
-        },
-        Event::KeyUp { keycode: Some(Keycode::Up), repeat: false, .. } => {
-            player.direction = player.direction.offset(0.0,1.0);
-        },
-        Event::KeyUp { keycode: Some(Keycode::Down), repeat: false, .. } => {
-            player.direction = player.direction.offset(0.0,-1.0);
-        },
-        _ => {}
-    }
+pub fn update_player_direction(player: &mut Player, event_pump: &sdl2::EventPump) {
+    let dir = input::input_dir(event_pump);
+    player.kinematics.kind.direction = Vector2::new(dir.x,dir.y);
 }

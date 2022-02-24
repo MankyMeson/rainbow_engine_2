@@ -8,7 +8,9 @@ use sdl2::image::{self, LoadTexture, InitFlag};
 use sdl2::rect::{Point, Rect};
 use std::time::Duration;
 use rainbow_engine_2::{self, consts, Direction};
-use rainbow_engine_2::vector_2::Vector2;
+use rainbow_engine_2::vector::Vector2;
+use rainbow_engine_2::entity::{Entity,Kinetic};
+use rainbow_engine_2::input;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -27,25 +29,39 @@ fn main() -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture("/home/clio/Pictures/Wallpapers/alien.png")?;
 
-    let mut player = rainbow_engine_2::Player {
+//  let mut player = rainbow_engine_2::Player {
+//      position: Point::new(0,0),
+//      sprite: Rect::new(0,0,26,36),
+//      speed: Vector2::new(0.,0.),
+//      direction: Vector2::new(0.,0.)
+//  };
+
+    let mut player = rainbow_engine_2::Player_New {
         position: Point::new(0,0),
-        sprite: Rect::new(0,0,26,36),
-        speed: Vector2::new(0.,0.),
-        direction: Vector2::new(0.,0.)
+        sprite: Entity<Sprite> { position: Point::new(0,0), kind: Sprite { img: Rect::new(0,0,26,36) } },
+        kinematics: Entity<Kinetic> {
+            position: Point::new(0,0),
+            kind: Kinetic {
+                speed: Vector2::new(0.,0.),
+                direction: Vector2::new(0.,0.) 
+            }
+        }
     };
+
 
     let mut event_pump = sdl_context.event_pump()?;
     let mut i = 0;
 
     'running: loop {
         // Handle events
+        rainbow_engine_2::update_player_direction(&mut player, &event_pump);
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running;
                 },
-                _ => {rainbow_engine_2::get_move_inpt(&mut player, event)}
+                _ => {}
             }
             println!("player.direction: [{},{}]",player.direction.x,player.direction.y);
         }

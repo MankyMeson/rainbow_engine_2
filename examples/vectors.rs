@@ -1,4 +1,4 @@
-use rainbow_engine_2::{self,vector_2::Vector2};
+use rainbow_engine_2::{self,vector::Vector2};
 
 fn main() {
     let a: Vector2 = Vector2::new(1.,5.);
